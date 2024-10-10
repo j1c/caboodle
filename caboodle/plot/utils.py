@@ -1,4 +1,3 @@
-# Credit @bdpedigo
 import matplotlib as mpl
 import seaborn as sns
 
