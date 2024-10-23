@@ -56,10 +56,10 @@ class TransformerTabularClassifier(nn.Module):
 
 
 class MLPClassifier(nn.Module):
-    def __init__(self, d_model, n_layers):
+    def __init__(self, d_model):
         super(MLPClassifier, self).__init__()
         self.linear1 = nn.Linear(2, d_model)
-        self.linear2 = nn.Lienar(d_model, d_model)
+        self.linear2 = nn.Linear(d_model, d_model)
         self.linear3 = nn.Linear(d_model, 2)
 
     def forward(self, x):
@@ -82,7 +82,7 @@ dataloader = DataLoader(dataset, batch_size=128, shuffle=True)
 
 models = [
     TransformerTabularClassifier(
-        num_features=2, d_model=32, num_classes=2, num_heads=1, num_layers=1
+        num_features=2, d_model=32, num_classes=2, num_heads=1, num_layers=2
     ),
     MLPClassifier(32),
 ]
@@ -109,7 +109,7 @@ for model in models:
             loss.backward()
             optimizer.step()
 
-    print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}")
+        print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}")
 
 
 # %%
@@ -132,4 +132,19 @@ display.ax_.scatter(x[:100, 0], x[:100, 1], c=y[:100], edgecolor="black")
 
 # %%
 list(model.parameters())
+# %%
+maps = []
+for idx, layer in enumerate(models[0].transformer_encoder.layers):
+    _, attn = layer.self_attn(batch_x, batch_x, batch_x, need_weights=True)
+    maps.append(attn)
+
+
+# %%
+models[0].cls_token.shape
+# %%
+layer.self_attn(models[0].cls_token, models[0].cls_token, models[0].cls_token, need_weights=True)
+
+
+# %%
+models[0].cls_token
 # %%
