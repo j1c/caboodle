@@ -58,7 +58,7 @@ def summary(model) -> None:
     # Count top_level params
     _num_params = lambda m: sum(p.numel() for p in m.parameters())
 
-    print(f"Model created with {_num_params(model)} parameters")
+    print(f"Model with {_num_params(model)} parameters")
     for child in model.children():
         name = child.__class__.__name__
         print(f"\t{name} has {_num_params(child)} parameters")
