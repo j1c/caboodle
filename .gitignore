@@ -130,3 +130,6 @@ dmypy.json
 
 # Settings
 .vscode/
+
+# Useless stuff
+.DS_Store
