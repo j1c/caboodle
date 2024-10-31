@@ -1,7 +1,8 @@
-import os
 import json
+import os
 import time
 from pathlib import Path
+
 import numpy as np
 import torch
 
@@ -58,10 +59,10 @@ def summary(model) -> None:
     # Count top_level params
     _num_params = lambda m: sum(p.numel() for p in m.parameters())
 
-    print(f"Model with {_num_params(model)} parameters")
+    print(f"Model with {_num_params(model):,} parameters")
     for child in model.children():
         name = child.__class__.__name__
-        print(f"\t{name} has {_num_params(child)} parameters")
+        print(f"\t{name} has {_num_params(child):,} parameters")
 
 
 def setup_paths(args):
