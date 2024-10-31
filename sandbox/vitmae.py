@@ -1,5 +1,4 @@
 # %%
-import math
 import pickle
 from pathlib import Path
 
@@ -11,14 +10,13 @@ from torch.utils.data import DataLoader, TensorDataset
 from tqdm.autonotebook import tqdm
 
 from caboodle.models.mae import MaskedAutoencoderViT
-from caboodle.utils import check_mps, summary
+from caboodle.utils import summary
 
-assert check_mps()
-
+DEVICE = 'cuda'
 
 # %%
 # load data
-p = Path("./data")
+p = Path("../data")
 with open(p / "dmri.pkl", "rb") as f:
     data = pickle.load(f)
 
@@ -42,7 +40,7 @@ scaled_data = np.array(scaled_data, dtype=np.float32)[:, np.newaxis, :, :]
 dataset = TensorDataset(torch.tensor(scaled_data))
 loader = DataLoader(
     dataset,
-    batch_size=16,
+    batch_size=128,
     shuffle=True,
 )
 
@@ -56,10 +54,10 @@ model = MaskedAutoencoderViT(
     patch_size=(1, 4),
     in_chans=1,
     embed_dim=768,
-    depth=6,
+    depth=12,
     num_heads=16,
     decoder_embed_dim=384,
-    decoder_depth=3,
+    decoder_depth=6,
     decoder_num_heads=16,
 )
 summary(model)
@@ -69,14 +67,14 @@ epochs = 10
 optimizer = torch.optim.AdamW(model.parameters(), lr=5e-7, betas=(0.9, 0.95))
 print(optimizer)
 
-model.to("mps")
+model.to(DEVICE)
 
 losses = []
 for epoch in range(epochs):
     model.train()
 
     for batch_idx, [samples] in tqdm(enumerate(loader)):
-        samples = samples.to("mps")
+        samples = samples.to(DEVICE)
         optimizer.zero_grad()
 
         loss, _, _ = model(samples, mask_ratio=0.9)
@@ -97,5 +95,22 @@ for epoch in range(epochs):
             )
 
 # %%
-df.shape
+torch.cuda.empty_cache()
+# %%
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+sns.set_context('talk')
+fig, ax = plt.subplots(figsize=(6, 4))
+
+xticks = np.linspace(0, len(losses), 11)
+
+ax.plot(np.arange(len(losses)), losses)
+ax.set_xticks(xticks, np.arange(0, 11))
+
+ax.set_xlabel("Epoch")
+ax.set_ylabel("Loss")
+
+# %%
+fig.savefig("./losses.png", dpi=100, bbox_inches='tight')
 # %%
